@@ -19,7 +19,7 @@ beforeEach(() => {
   insertCourse(db, {
     id: 'course-1', name: 'Solidity 101', symbol: 'SLD',
     description: 'Learn Solidity', teacherWallet: 'T1',
-    mintAddress: 'Mint1111111111111111111111111111111111111111',
+    mintAddress: 'So11111111111111111111111111111111111111112',
     metadataUrl: 'https://meta.json', configKey: 'cfg1', launchSignature: 'sig1',
     createdAt: 1000,
   });

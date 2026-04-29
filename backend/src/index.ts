@@ -6,6 +6,7 @@ import type { DB } from './db.js';
 import { tokensRouter } from './routes/tokens.js';
 import { coursesRouter } from './routes/courses.js';
 import { tasksRouter } from './routes/tasks.js';
+import { feesRouter } from './routes/fees.js';
 
 export function createApp(testDb?: DB) {
   const db = testDb ?? initDb();
@@ -18,6 +19,7 @@ export function createApp(testDb?: DB) {
   app.use('/api/tokens', tokensRouter(db));
   app.use('/api', coursesRouter(db));
   app.use('/api', tasksRouter(db));
+  app.use('/api/fees', feesRouter());
 
   return app;
 }
