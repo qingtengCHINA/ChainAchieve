@@ -2,10 +2,13 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db.js';
+import type { DB } from './db.js';
 import { tokensRouter } from './routes/tokens.js';
+import { coursesRouter } from './routes/courses.js';
+import { tasksRouter } from './routes/tasks.js';
 
-export function createApp() {
-  const db = initDb();
+export function createApp(testDb?: DB) {
+  const db = testDb ?? initDb();
   const app = express();
   app.use(cors());
   app.use(express.json());
@@ -13,6 +16,8 @@ export function createApp() {
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
   app.use('/api/tokens', tokensRouter(db));
+  app.use('/api', coursesRouter(db));
+  app.use('/api', tasksRouter(db));
 
   return app;
 }

@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/index.js';
+import { initDb } from '../src/db.js';
 
 vi.mock('../src/sdk.js', () => ({
   getSDK: vi.fn(() => ({
@@ -31,24 +32,12 @@ vi.mock('../src/keypair.js', () => ({
   })),
 }));
 
-vi.mock('../src/db.js', () => ({
-  initDb: vi.fn(() => ({
-    prepare: vi.fn(() => ({ get: vi.fn(() => ({ mint_address: 'Mint1111111111111111111111111111111111111111', metadata_url: 'https://meta.json' })) })),
-  })),
-  insertCourse: vi.fn(),
-  updateCourse: vi.fn(),
-  getCourses: vi.fn(() => []),
-  getCourse: vi.fn(() => undefined),
-  getTasks: vi.fn(() => []),
-  insertTask: vi.fn(),
-  insertCompletion: vi.fn(),
-  getCompletions: vi.fn(() => []),
-  getStudentCompletions: vi.fn(() => []),
-}));
+const db = initDb(':memory:');
+const app = createApp(db);
+afterAll(() => db.close());
 
 describe('POST /api/tokens/info', () => {
   it('returns courseId, tokenMint and metadataUrl', async () => {
-    const app = createApp();
     const res = await request(app).post('/api/tokens/info').send({
       name: 'Solidity 101',
       symbol: 'SLD101',
@@ -65,7 +54,6 @@ describe('POST /api/tokens/info', () => {
   });
 
   it('returns 400 when required fields are missing', async () => {
-    const app = createApp();
     const res = await request(app).post('/api/tokens/info').send({ name: 'Missing fields' });
     expect(res.status).toBe(400);
   });
