@@ -12,6 +12,7 @@ export function initDb(path = './chainachieve.db'): DB {
       name TEXT NOT NULL,
       symbol TEXT NOT NULL,
       description TEXT NOT NULL,
+      image_url TEXT NOT NULL DEFAULT '',
       teacher_wallet TEXT NOT NULL,
       mint_address TEXT,
       metadata_url TEXT,
@@ -38,12 +39,14 @@ export function initDb(path = './chainachieve.db'): DB {
       UNIQUE(task_id, student_wallet)
     );
   `);
+  // Migrate existing databases created before image_url was added.
+  try { db.exec(`ALTER TABLE courses ADD COLUMN image_url TEXT NOT NULL DEFAULT ''`); } catch { /* column already exists */ }
   return db;
 }
 
 export function getCourses(db: DB): Course[] {
   return db.prepare(`
-    SELECT id, name, symbol, description,
+    SELECT id, name, symbol, description, image_url as imageUrl,
            teacher_wallet as teacherWallet,
            mint_address as mintAddress,
            metadata_url as metadataUrl,
@@ -56,7 +59,7 @@ export function getCourses(db: DB): Course[] {
 
 export function getCourse(db: DB, id: string): Course | undefined {
   return db.prepare(`
-    SELECT id, name, symbol, description,
+    SELECT id, name, symbol, description, image_url as imageUrl,
            teacher_wallet as teacherWallet,
            mint_address as mintAddress,
            metadata_url as metadataUrl,
@@ -69,10 +72,10 @@ export function getCourse(db: DB, id: string): Course | undefined {
 
 export function insertCourse(db: DB, c: Course): void {
   db.prepare(`
-    INSERT INTO courses (id, name, symbol, description, teacher_wallet,
+    INSERT INTO courses (id, name, symbol, description, image_url, teacher_wallet,
       mint_address, metadata_url, config_key, launch_signature, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(c.id, c.name, c.symbol, c.description, c.teacherWallet,
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(c.id, c.name, c.symbol, c.description, c.imageUrl, c.teacherWallet,
          c.mintAddress, c.metadataUrl, c.configKey, c.launchSignature, c.createdAt);
 }
 

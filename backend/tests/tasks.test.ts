@@ -18,7 +18,8 @@ beforeEach(() => {
   db.exec('DELETE FROM completions; DELETE FROM tasks; DELETE FROM courses;');
   insertCourse(db, {
     id: 'course-1', name: 'Solidity 101', symbol: 'SLD',
-    description: 'Learn Solidity', teacherWallet: 'T1',
+    description: 'Learn Solidity', imageUrl: 'https://example.com/img.png',
+    teacherWallet: 'T1',
     mintAddress: 'So11111111111111111111111111111111111111112',
     metadataUrl: 'https://meta.json', configKey: 'cfg1', launchSignature: 'sig1',
     createdAt: 1000,

@@ -38,6 +38,8 @@ export const api = {
     }),
   getStudentCompletions: (wallet: string) =>
     req<StudentCompletion[]>(`/student/completions?wallet=${encodeURIComponent(wallet)}`),
+  getResume: (wallet: string) =>
+    req<ResumeData>(`/resume?wallet=${encodeURIComponent(wallet)}`),
 };
 
 export interface Course {
@@ -45,6 +47,7 @@ export interface Course {
   name: string;
   symbol: string;
   description: string;
+  imageUrl: string;
   teacherWallet: string;
   mintAddress: string | null;
   launchSignature: string | null;
@@ -72,6 +75,19 @@ export interface StudentCompletion {
   courseId: string;
   txSignature: string | null;
   completedAt: number;
+}
+
+export interface ResumeData {
+  wallet: string;
+  generatedAt: number;
+  achievements: {
+    courseId: string;
+    courseName: string;
+    taskId: string;
+    taskTitle: string;
+    completedAt: number;
+    txSignature: string | null;
+  }[];
 }
 
 interface CreateTokenInfoBody {

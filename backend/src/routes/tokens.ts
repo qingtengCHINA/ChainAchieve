@@ -51,6 +51,7 @@ export function tokensRouter(db: DB): Router {
         name,
         symbol,
         description,
+        imageUrl,
         teacherWallet,
         mintAddress: result.tokenMint,
         metadataUrl: result.tokenMetadata,

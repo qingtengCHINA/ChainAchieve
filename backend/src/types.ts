@@ -3,6 +3,7 @@ export interface Course {
   name: string;
   symbol: string;
   description: string;
+  imageUrl: string;
   teacherWallet: string;
   mintAddress: string | null;
   metadataUrl: string | null;
