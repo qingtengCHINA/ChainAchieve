@@ -1,14 +1,27 @@
 {
   "name": "chainachieve",
   "private": true,
-  "workspaces": ["backend", "frontend"],
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
     "dev:backend": "npm run dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
-    "test": "npm run test -w backend && npm run test -w frontend"
+    "test": "npm run test -w backend && npm run test -w frontend",
+    "supabase:link": "npx supabase link --project-ref fitfhwnjiuumkezoswwz",
+    "deploy:supabase:db": "npx supabase db push",
+    "deploy:supabase:functions": "npx supabase functions deploy api --project-ref fitfhwnjiuumkezoswwz --no-verify-jwt",
+    "deploy:supabase:frontend": "npm run build -w frontend && node scripts/upload-supabase-frontend.mjs",
+    "deploy:supabase": "npm run deploy:supabase:db && npm run deploy:supabase:functions && npm run deploy:supabase:frontend"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
+    "gsap": "^3.15.0",
+    "motion": "^12.38.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "react-router-dom": "^6.30.3"
   }
 }

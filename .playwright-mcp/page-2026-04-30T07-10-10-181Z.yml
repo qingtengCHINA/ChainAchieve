@@ -1,0 +1,104 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "ChainAchieve" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e11]: ChainAchieve
+      - generic [ref=e12]:
+        - button "Toggle theme" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+        - button "中" [ref=e161] [cursor=pointer]:
+          - text: 中
+          - img [ref=e22]
+  - generic [ref=e25]:
+    - generic [ref=e27]:
+      - generic [ref=e29]:
+        - img [ref=e30]
+        - text: 构建于 Solana
+      - heading "学习。 成就。 拥有。" [level=1] [ref=e162]:
+        - generic [ref=e35]: 学习。
+        - generic [ref=e36]: 成就。
+        - generic [ref=e37]: 拥有。
+      - paragraph [ref=e39]: 通过完成课程获得链上成就代币。在 Solana 上构建永久可验证的 Web3 学习简历。
+      - generic [ref=e41]:
+        - button "浏览课程" [ref=e163] [cursor=pointer]:
+          - text: 浏览课程
+          - img [ref=e43]
+        - button "我是教师" [ref=e164] [cursor=pointer]
+      - generic [ref=e47]:
+        - generic [ref=e48]: 向下滚动
+        - img [ref=e50]
+    - generic [ref=e52]:
+      - heading "使用流程" [level=2] [ref=e165]
+      - generic [ref=e55]:
+        - generic [ref=e57] [cursor=pointer]:
+          - generic [ref=e58]: 🪙
+          - heading "教师发行代币" [level=3] [ref=e166]
+          - paragraph [ref=e60]: 创建课程并铸造专属 SPL 成就代币，无需编写代码，由 Bags SDK 驱动。
+        - generic [ref=e62] [cursor=pointer]:
+          - generic [ref=e63]: 🎓
+          - heading "学生赚取份额" [level=3] [ref=e167]
+          - paragraph [ref=e65]: 完成任务，获得代币分配。每项成就都是你真实拥有的链上资产。
+        - generic [ref=e67] [cursor=pointer]:
+          - generic [ref=e68]: ♾️
+          - heading "永久版税" [level=3] [ref=e168]
+          - paragraph [ref=e70]: 每当成就代币被交易，教师即可获得手续费分成收益。教一次，收益永续。
+        - generic [ref=e72] [cursor=pointer]:
+          - generic [ref=e73]: 📜
+          - heading "链上简历" [level=3] [ref=e169]
+          - paragraph [ref=e75]: 已完成课程构成可验证的作品集，可导出、分享或在任何地方使用。
+    - generic [ref=e77]:
+      - heading "使用流程" [level=2] [ref=e170]
+      - generic [ref=e80]:
+        - generic [ref=e82]:
+          - generic [ref=e83]: "1"
+          - paragraph [ref=e84]: 连接您的 Solana 钱包（Phantom、Backpack 或任何 Wallet Standard 钱包）
+        - generic [ref=e86]:
+          - generic [ref=e87]: "2"
+          - paragraph [ref=e88]: 教师通过三步向导创建课程并发行 SPL 代币
+        - generic [ref=e90]:
+          - generic [ref=e91]: "3"
+          - paragraph [ref=e92]: 学生浏览课程、完成任务，获得代币奖励
+        - generic [ref=e94]:
+          - generic [ref=e95]: "4"
+          - paragraph [ref=e96]: 构建链上简历并导出为便携式 JSON 凭证
+    - generic [ref=e97]:
+      - heading "为 Web3 教育而生" [level=2] [ref=e171]
+      - generic [ref=e100]:
+        - generic [ref=e102]:
+          - generic [ref=e104]: "1"
+          - paragraph [ref=e105]: Solana 开发网
+        - generic [ref=e107]:
+          - generic [ref=e109]: "2"
+          - paragraph [ref=e110]: 多钱包支持
+        - generic [ref=e112]:
+          - generic [ref=e114]: "3"
+          - paragraph [ref=e115]: 开源项目
+        - generic [ref=e117]:
+          - generic [ref=e119]: "4"
+          - paragraph [ref=e120]: 免费使用
+    - generic [ref=e122]:
+      - heading "准备好开始学习了吗？" [level=2] [ref=e172]
+      - paragraph [ref=e124]: 加入 Solana 上可验证教育凭证的未来。
+      - button "浏览课程" [ref=e173] [cursor=pointer]
+    - contentinfo [ref=e126]:
+      - paragraph [ref=e127]: ChainAchieve · Built for The Bags Hackathon · Solana Devnet
+  - navigation [ref=e128]:
+    - generic [ref=e129]:
+      - link "首页" [ref=e174] [cursor=pointer]:
+        - /url: /
+        - img [ref=e133]
+        - generic [ref=e136]: 首页
+      - link "课程" [ref=e175] [cursor=pointer]:
+        - /url: /student
+        - img [ref=e139]
+        - generic [ref=e142]: 课程
+      - link "教师" [ref=e176] [cursor=pointer]:
+        - /url: /teacher
+        - img [ref=e145]
+        - generic [ref=e150]: 教师
+      - link "简历" [ref=e177] [cursor=pointer]:
+        - /url: /resume
+        - img [ref=e153]
+        - generic [ref=e156]: 简历

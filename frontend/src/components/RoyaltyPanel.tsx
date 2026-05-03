@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Transaction } from '@solana/web3.js';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api, FeePosition } from '../lib/api';
 
 export function RoyaltyPanel() {
@@ -42,42 +43,103 @@ export function RoyaltyPanel() {
   }
 
   if (!publicKey) {
-    return <p className="text-sm text-gray-500">Connect your wallet to view royalties.</p>;
+    return (
+      <div className="card text-center py-10">
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
+          Connect your wallet to view royalties.
+        </p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
-      <h3 className="text-base font-semibold text-gray-800">Claimable Royalties</h3>
+      <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+        Claimable Royalties
+      </p>
 
-      {loading && <p className="text-sm text-gray-400">Fetching positions…</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {claimSig && (
-        <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-700">
-          Claimed! Tx: <span className="font-mono text-xs">{claimSig.slice(0, 20)}…</span>
-        </div>
-      )}
-
-      {!loading && positions.length === 0 && (
-        <p className="text-sm text-gray-400">No claimable royalties at the moment.</p>
-      )}
-
-      {positions.map(pos => (
-        <div key={pos.baseMint} className="border rounded-xl p-4 flex items-center justify-between bg-white">
-          <div>
-            <p className="text-xs font-mono text-gray-500 truncate w-48">{pos.baseMint}</p>
-            <p className="text-lg font-bold text-indigo-700 mt-1">
-              {pos.claimableDisplayAmount.toFixed(4)} <span className="text-sm font-normal text-gray-500">tokens</span>
-            </p>
-          </div>
-          <button
-            onClick={() => handleClaim(pos.baseMint)}
-            disabled={!!claiming}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
+      <AnimatePresence>
+        {claimSig && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="card p-4 flex items-center gap-3"
+            style={{ background: 'rgba(159,232,112,0.10)', borderColor: 'rgba(159,232,112,0.3)' }}
           >
-            {claiming === pos.baseMint ? 'Claiming…' : 'Claim'}
-          </button>
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+              style={{ background: 'var(--brand-green)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#163300" strokeWidth="3" strokeLinecap="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold" style={{ color: 'var(--text)' }}>Claimed!</p>
+              <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{claimSig.slice(0, 24)}…</p>
+            </div>
+          </motion.div>
+        )}
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="card p-3"
+            style={{ background: 'rgba(208,50,56,0.08)', borderColor: 'rgba(208,50,56,0.3)' }}
+          >
+            <p className="text-sm font-semibold" style={{ color: '#d03238' }}>{error}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {loading && (
+        <div className="space-y-3">
+          {[1, 2].map(i => <div key={i} className="skeleton h-20 rounded-[30px]" />)}
         </div>
-      ))}
+      )}
+
+      {!loading && positions.length === 0 && !error && (
+        <div className="card text-center py-12">
+          <div className="text-4xl mb-3">💸</div>
+          <p className="font-semibold" style={{ color: 'var(--text-muted)' }}>No claimable royalties at the moment.</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            Royalties accumulate as students trade achievement tokens.
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {positions.map(pos => (
+          <motion.div
+            key={pos.baseMint}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card flex items-center justify-between gap-4 p-5"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-mono truncate mb-1" style={{ color: 'var(--text-muted)' }}>
+                {pos.baseMint}
+              </p>
+              <p className="text-2xl font-black" style={{ color: 'var(--text)' }}>
+                {pos.claimableDisplayAmount.toFixed(4)}
+                <span className="text-sm font-semibold ml-1.5" style={{ color: 'var(--text-muted)' }}>tokens</span>
+              </p>
+            </div>
+            <motion.button
+              className="btn-primary shrink-0"
+              onClick={() => handleClaim(pos.baseMint)}
+              disabled={!!claiming}
+              whileHover={{ scale: claiming ? 1 : 1.05 }}
+              whileTap={{ scale: claiming ? 1 : 0.95 }}
+            >
+              {claiming === pos.baseMint ? 'Claiming…' : 'Claim'}
+            </motion.button>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }

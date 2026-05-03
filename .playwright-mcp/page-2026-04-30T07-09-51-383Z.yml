@@ -1,0 +1,36 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "ChainAchieve" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e11]: ChainAchieve
+      - generic [ref=e12]:
+        - button "Toggle theme" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+        - button "EN" [ref=e21] [cursor=pointer]:
+          - text: EN
+          - img [ref=e22]
+  - generic [ref=e27]:
+    - generic [ref=e28]: 📜
+    - heading "On-Chain Resume" [level=2] [ref=e29]
+    - paragraph [ref=e30]: Connect your wallet to view your on-chain resume.
+    - button "Select Wallet" [ref=e33] [cursor=pointer]
+  - navigation [ref=e34]:
+    - generic [ref=e35]:
+      - link "Home" [ref=e36] [cursor=pointer]:
+        - /url: /
+        - img [ref=e38]
+        - generic [ref=e41]: Home
+      - link "Courses" [ref=e42] [cursor=pointer]:
+        - /url: /student
+        - img [ref=e44]
+        - generic [ref=e47]: Courses
+      - link "Teacher" [ref=e48] [cursor=pointer]:
+        - /url: /teacher
+        - img [ref=e50]
+        - generic [ref=e55]: Teacher
+      - link "Resume" [ref=e56] [cursor=pointer]:
+        - /url: /resume
+        - img [ref=e59]
+        - generic [ref=e62]: Resume

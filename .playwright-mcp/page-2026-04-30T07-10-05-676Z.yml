@@ -1,0 +1,109 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "ChainAchieve" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e11]: ChainAchieve
+      - generic [ref=e12]:
+        - button "Toggle theme" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+        - generic [ref=e20]:
+          - button "EN" [active] [ref=e21] [cursor=pointer]:
+            - text: EN
+            - img [ref=e22]
+          - generic [ref=e157]:
+            - button "English" [ref=e158] [cursor=pointer]
+            - button "中文" [ref=e159] [cursor=pointer]
+            - button "日本語" [ref=e160] [cursor=pointer]
+  - generic [ref=e25]:
+    - generic [ref=e27]:
+      - generic [ref=e29]:
+        - img [ref=e30]
+        - text: Built on Solana
+      - heading "Learn. Achieve. Own." [level=1] [ref=e34]:
+        - generic [ref=e35]: Learn.
+        - generic [ref=e36]: Achieve.
+        - generic [ref=e37]: Own.
+      - paragraph [ref=e39]: Earn on-chain achievement tokens by completing courses. Build a verifiable Web3 resume that lives forever on Solana.
+      - generic [ref=e41]:
+        - button "Browse Courses" [ref=e42] [cursor=pointer]:
+          - text: Browse Courses
+          - img [ref=e43]
+        - button "I'm a Teacher" [ref=e45] [cursor=pointer]
+      - generic [ref=e47]:
+        - generic [ref=e48]: Scroll to explore
+        - img [ref=e50]
+    - generic [ref=e52]:
+      - heading "How it works" [level=2] [ref=e54]
+      - generic [ref=e55]:
+        - generic [ref=e57] [cursor=pointer]:
+          - generic [ref=e58]: 🪙
+          - heading "Teachers Launch Tokens" [level=3] [ref=e59]
+          - paragraph [ref=e60]: Create a course and mint your own SPL achievement token with zero coding — powered by Bags SDK.
+        - generic [ref=e62] [cursor=pointer]:
+          - generic [ref=e63]: 🎓
+          - heading "Students Earn Shares" [level=3] [ref=e64]
+          - paragraph [ref=e65]: Complete tasks, earn token fractions. Each achievement is a real on-chain asset you own.
+        - generic [ref=e67] [cursor=pointer]:
+          - generic [ref=e68]: ♾️
+          - heading "Perpetual Royalties" [level=3] [ref=e69]
+          - paragraph [ref=e70]: Teachers earn fee-share royalties every time achievement tokens are traded. Teach once, earn forever.
+        - generic [ref=e72] [cursor=pointer]:
+          - generic [ref=e73]: 📜
+          - heading "On-Chain Resume" [level=3] [ref=e74]
+          - paragraph [ref=e75]: Your completed courses form a verifiable portfolio. Export it, share it, or use it anywhere.
+    - generic [ref=e77]:
+      - heading "How it works" [level=2] [ref=e79]
+      - generic [ref=e80]:
+        - generic [ref=e82]:
+          - generic [ref=e83]: "1"
+          - paragraph [ref=e84]: Connect your Solana wallet (Phantom, Backpack, or any Wallet Standard wallet)
+        - generic [ref=e86]:
+          - generic [ref=e87]: "2"
+          - paragraph [ref=e88]: Teachers create courses and launch SPL tokens via the 3-step wizard
+        - generic [ref=e90]:
+          - generic [ref=e91]: "3"
+          - paragraph [ref=e92]: Students browse courses, complete tasks, and receive token rewards
+        - generic [ref=e94]:
+          - generic [ref=e95]: "4"
+          - paragraph [ref=e96]: Build your on-chain resume and export it as a portable JSON credential
+    - generic [ref=e97]:
+      - heading "Built for Web3 Education" [level=2] [ref=e99]
+      - generic [ref=e100]:
+        - generic [ref=e102]:
+          - generic [ref=e104]: "1"
+          - paragraph [ref=e105]: Solana Devnet
+        - generic [ref=e107]:
+          - generic [ref=e109]: "2"
+          - paragraph [ref=e110]: Multi-Wallet
+        - generic [ref=e112]:
+          - generic [ref=e114]: "3"
+          - paragraph [ref=e115]: Open Source
+        - generic [ref=e117]:
+          - generic [ref=e119]: "4"
+          - paragraph [ref=e120]: Free to Use
+    - generic [ref=e122]:
+      - heading "Ready to start learning?" [level=2] [ref=e123]
+      - paragraph [ref=e124]: Join the future of verifiable education credentials on Solana.
+      - button "Browse Courses" [ref=e125] [cursor=pointer]
+    - contentinfo [ref=e126]:
+      - paragraph [ref=e127]: ChainAchieve · Built for The Bags Hackathon · Solana Devnet
+  - navigation [ref=e128]:
+    - generic [ref=e129]:
+      - link "Home" [ref=e130] [cursor=pointer]:
+        - /url: /
+        - img [ref=e133]
+        - generic [ref=e136]: Home
+      - link "Courses" [ref=e137] [cursor=pointer]:
+        - /url: /student
+        - img [ref=e139]
+        - generic [ref=e142]: Courses
+      - link "Teacher" [ref=e143] [cursor=pointer]:
+        - /url: /teacher
+        - img [ref=e145]
+        - generic [ref=e150]: Teacher
+      - link "Resume" [ref=e151] [cursor=pointer]:
+        - /url: /resume
+        - img [ref=e153]
+        - generic [ref=e156]: Resume

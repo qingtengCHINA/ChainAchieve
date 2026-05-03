@@ -27,4 +27,5 @@ export interface Completion {
   studentWallet: string;
   txSignature: string | null;
   completedAt: number;
+  status?: 'pending' | 'completed' | 'failed';
 }

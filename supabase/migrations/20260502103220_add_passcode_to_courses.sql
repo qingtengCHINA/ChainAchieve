@@ -1,0 +1,2 @@
+ALTER TABLE public.courses
+  ADD COLUMN IF NOT EXISTS passcode VARCHAR(8) DEFAULT NULL;

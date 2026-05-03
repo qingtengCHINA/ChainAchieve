@@ -6,9 +6,23 @@ export function WalletButton() {
   const { publicKey } = useWallet();
   return (
     <div className="flex items-center gap-2">
-      <WalletMultiButton className="!bg-indigo-600 !rounded-lg !text-sm !py-2 !px-4" />
+      <WalletMultiButton
+        style={{
+          background: '#9fe870',
+          color: '#163300',
+          borderRadius: '9999px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 600,
+          fontSize: '14px',
+          padding: '0 16px',
+          height: '36px',
+          lineHeight: '1',
+          border: 'none',
+          transition: 'transform 0.15s ease',
+        }}
+      />
       {publicKey && (
-        <span className="text-xs text-gray-500">
+        <span className="hidden lg:block text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
           {publicKey.toBase58().slice(0, 4)}…{publicKey.toBase58().slice(-4)}
         </span>
       )}

@@ -1,0 +1,39 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "ChainAchieve" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e11]: ChainAchieve
+      - generic [ref=e12]:
+        - button "Toggle theme" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+        - button "EN" [ref=e21] [cursor=pointer]:
+          - text: EN
+          - img [ref=e22]
+  - generic [ref=e25]:
+    - heading "Courses" [level=1] [ref=e27]
+    - generic [ref=e29]:
+      - button "Browse" [ref=e30] [cursor=pointer]
+      - button "Achievements" [ref=e31] [cursor=pointer]
+    - generic [ref=e33]:
+      - paragraph [ref=e34]: 📚
+      - paragraph [ref=e35]: No courses available yet.
+  - navigation [ref=e36]:
+    - generic [ref=e37]:
+      - link "Home" [ref=e38] [cursor=pointer]:
+        - /url: /
+        - img [ref=e40]
+        - generic [ref=e43]: Home
+      - link "Courses" [ref=e44] [cursor=pointer]:
+        - /url: /student
+        - img [ref=e47]
+        - generic [ref=e50]: Courses
+      - link "Teacher" [ref=e51] [cursor=pointer]:
+        - /url: /teacher
+        - img [ref=e53]
+        - generic [ref=e58]: Teacher
+      - link "Resume" [ref=e59] [cursor=pointer]:
+        - /url: /resume
+        - img [ref=e61]
+        - generic [ref=e64]: Resume
