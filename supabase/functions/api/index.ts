@@ -1,7 +1,7 @@
 import { BagsSDK } from '@bagsfm/bags-sdk';
 import * as ed25519 from '@noble/ed25519';
 import { getOrCreateAssociatedTokenAccount, transfer } from '@solana/spl-token';
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { createClient } from '@supabase/supabase-js';
 import bs58 from 'bs58';
 import { Buffer } from 'node:buffer';
@@ -356,6 +356,7 @@ async function createTokenInfo(req: Request, route: string): Promise<Response> {
 
   const normalizedPasscode = passcode ? passcode.toUpperCase() : null;
 
+  let step = 'metadata';
   try {
     const keypair = getPlatformKeypair();
     const conn = getConnection();
@@ -371,25 +372,12 @@ async function createTokenInfo(req: Request, route: string): Promise<Response> {
     const tokenMint = new PublicKey(result.tokenMint);
     const teacherPubkey = new PublicKey(teacherWallet);
 
-    // Step 2: Auto-create fee share config — teacher receives 100% of trading fees
-    const feeConfigResult = await getSDK().config.createBagsFeeShareConfig({
-      feeClaimers: [{ user: teacherPubkey, userBps: 10000 }],
-      payer: keypair.publicKey,
-      baseMint: tokenMint,
-    });
+    // Step 2: Get or create fee share config (handles "already exists" gracefully)
+    step = 'fee_config';
+    const configKey = await getOrCreateFeeConfig(tokenMint, teacherPubkey, keypair, conn);
 
-    // Step 3: Sign and confirm all fee config transactions in sequence
-    const { blockhash: fb, lastValidBlockHeight: flvbh } = await conn.getLatestBlockhash();
-    for (const tx of feeConfigResult.transactions) {
-      tx.message.recentBlockhash = fb;
-      tx.sign([keypair]);
-      const sig = await conn.sendRawTransaction(tx.serialize());
-      await conn.confirmTransaction({ signature: sig, blockhash: fb, lastValidBlockHeight: flvbh });
-    }
-
-    const configKey = feeConfigResult.meteoraConfigKey;
-
-    // Step 4: Launch token on-chain
+    // Step 3: Launch token on-chain
+    step = 'launch';
     const launchTx = await getSDK().tokenLaunch.createLaunchTransaction({
       metadataUrl: result.tokenMetadata,
       tokenMint,
@@ -403,7 +391,8 @@ async function createTokenInfo(req: Request, route: string): Promise<Response> {
     const launchSig = await conn.sendRawTransaction(launchTx.serialize());
     await conn.confirmTransaction({ signature: launchSig, blockhash, lastValidBlockHeight });
 
-    // Step 5: Persist course with full launch info
+    // Step 4: Persist course with full launch info
+    step = 'db';
     const courseId = crypto.randomUUID();
     const { error } = await supabase.from('courses').insert({
       id: courseId,
@@ -420,7 +409,9 @@ async function createTokenInfo(req: Request, route: string): Promise<Response> {
     if (error) return dbError(error);
     return json({ courseId, tokenMint: result.tokenMint, metadataUrl: result.tokenMetadata, launchSignature: launchSig });
   } catch (err) {
-    return json({ error: String(err) }, 500);
+    const detail = bagsSdkError(err);
+    console.error(`[createTokenInfo step=${step}]`, detail);
+    return json({ error: `[${step}] ${detail}` }, 500);
   }
 }
 
@@ -435,32 +426,19 @@ async function launchToken(req: Request, route: string): Promise<Response> {
   const auth = await requireWallet(req, course.teacher_wallet, `/api${route}`);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
+  let step = 'fee_config';
   try {
     const keypair = getPlatformKeypair();
     const conn = getConnection();
     const tokenMint = new PublicKey(course.mint_address);
     const teacherPubkey = new PublicKey(course.teacher_wallet);
 
-    // Resolve configKey: use stored one, then auto-create if missing
-    let configKey: PublicKey;
-    if (course.config_key) {
-      configKey = new PublicKey(course.config_key);
-    } else {
-      const feeConfigResult = await getSDK().config.createBagsFeeShareConfig({
-        feeClaimers: [{ user: teacherPubkey, userBps: 10000 }],
-        payer: keypair.publicKey,
-        baseMint: tokenMint,
-      });
-      const { blockhash: fb, lastValidBlockHeight: flvbh } = await conn.getLatestBlockhash();
-      for (const tx of feeConfigResult.transactions) {
-        tx.message.recentBlockhash = fb;
-        tx.sign([keypair]);
-        const sig = await conn.sendRawTransaction(tx.serialize());
-        await conn.confirmTransaction({ signature: sig, blockhash: fb, lastValidBlockHeight: flvbh });
-      }
-      configKey = feeConfigResult.meteoraConfigKey;
-    }
+    // Resolve configKey: use stored one, or get/create
+    const configKey = course.config_key
+      ? new PublicKey(course.config_key)
+      : await getOrCreateFeeConfig(tokenMint, teacherPubkey, keypair, conn);
 
+    step = 'launch';
     const tx = await getSDK().tokenLaunch.createLaunchTransaction({
       metadataUrl: course.metadata_url,
       tokenMint,
@@ -479,7 +457,9 @@ async function launchToken(req: Request, route: string): Promise<Response> {
       .eq('id', parsed.data.courseId);
     return json({ signature, courseId: parsed.data.courseId });
   } catch (err) {
-    return json({ error: String(err) }, 500);
+    const detail = bagsSdkError(err);
+    console.error(`[launchToken step=${step}]`, detail);
+    return json({ error: `[${step}] ${detail}` }, 500);
   }
 }
 
@@ -725,6 +705,50 @@ async function distributeTokens(mintAddress: string, studentWallet: string, amou
   const platformAta = await getOrCreateAssociatedTokenAccount(conn, keypair, mint, keypair.publicKey);
   const studentAta = await getOrCreateAssociatedTokenAccount(conn, keypair, mint, student);
   return transfer(conn, keypair, platformAta.address, studentAta.address, keypair, BigInt(amount));
+}
+
+function bagsSdkError(err: unknown): string {
+  if (err && typeof err === 'object') {
+    const e = err as Record<string, unknown>;
+    const data = e['data'];
+    const msg = typeof e['message'] === 'string' ? e['message'] : String(err);
+    if (data) return `${msg} | Bags response: ${JSON.stringify(data)}`;
+    return msg;
+  }
+  return String(err);
+}
+
+async function getOrCreateFeeConfig(
+  tokenMint: PublicKey,
+  teacherPubkey: PublicKey,
+  keypair: Keypair,
+  conn: Connection,
+): Promise<PublicKey> {
+  const normalizedParams = {
+    basisPointsArray: [10000],
+    payer: keypair.publicKey.toBase58(),
+    baseMint: tokenMint.toBase58(),
+    claimersArray: [teacherPubkey.toBase58()],
+  };
+
+  // Bypass the SDK's "Config already exists" throw — call API directly
+  const response = await (getSDK().bagsApiClient as { post: (p: string, d: unknown) => Promise<Record<string, unknown>> }).post('/fee-share/config', normalizedParams);
+  const configKey = new PublicKey(response.meteoraConfigKey as string);
+
+  if (!response.needsCreation) return configKey;  // already on-chain
+
+  const transactions: VersionedTransaction[] = ((response.transactions ?? []) as Array<{ transaction: string }>).map(
+    (t) => VersionedTransaction.deserialize(bs58.decode(t.transaction))
+  );
+
+  const { blockhash: fb, lastValidBlockHeight: flvbh } = await conn.getLatestBlockhash();
+  for (const tx of transactions) {
+    tx.message.recentBlockhash = fb;
+    tx.sign([keypair]);
+    const sig = await conn.sendRawTransaction(tx.serialize());
+    await conn.confirmTransaction({ signature: sig, blockhash: fb, lastValidBlockHeight: flvbh });
+  }
+  return configKey;
 }
 
 function getSDK(): BagsSDK {
