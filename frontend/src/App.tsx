@@ -1,29 +1,50 @@
-import { Routes, Route, Link } from 'react-router-dom';
-import { WalletButton } from './components/WalletButton';
+import { Component, type ReactNode } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { NavBar } from './components/NavBar';
+import { BottomNav } from './components/BottomNav';
+import { PageTransition } from './components/PageTransition';
+import HomePage from './pages/HomePage';
 import TeacherPage from './pages/TeacherPage';
 import StudentPage from './pages/StudentPage';
 import ResumePage from './pages/ResumePage';
 
-export default function App() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <span className="font-bold text-indigo-600 text-lg">ChainAchieve</span>
-          <Link to="/student" className="text-sm text-gray-600 hover:text-indigo-600">Courses</Link>
-          <Link to="/teacher" className="text-sm text-gray-600 hover:text-indigo-600">Teacher</Link>
-          <Link to="/resume" className="text-sm text-gray-600 hover:text-indigo-600">My Resume</Link>
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(err: Error) { console.error('[ErrorBoundary]', err); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
+          <div style={{ fontSize: 48 }}>⚠️</div>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 600 }}>Something went wrong. Please refresh.</p>
         </div>
-        <WalletButton />
-      </nav>
-      <main>
-        <Routes>
-          <Route path="/" element={<StudentPage />} />
-          <Route path="/student" element={<StudentPage />} />
-          <Route path="/teacher" element={<TeacherPage />} />
-          <Route path="/resume" element={<ResumePage />} />
-        </Routes>
-      </main>
-    </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function App() {
+  const location = useLocation();
+
+  return (
+    <ErrorBoundary>
+      <div className="min-h-[100dvh]" style={{ background: 'var(--bg)' }}>
+        <NavBar />
+        <PageTransition>
+          <Routes location={location}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/student" element={<StudentPage />} />
+            <Route path="/teacher" element={<TeacherPage />} />
+            <Route path="/resume" element={<ResumePage />} />
+          </Routes>
+        </PageTransition>
+        <BottomNav />
+      </div>
+    </ErrorBoundary>
   );
 }
