@@ -589,7 +589,7 @@ export default function ResumePage() {
                               <span className="badge text-[11px]">{a.courseName}</span>
                               {a.txSignature && (
                                 <a
-                                  href={`https://explorer.solana.com/tx/${a.txSignature}?cluster=devnet`}
+                                  href={`https://explorer.solana.com/tx/${a.txSignature}?cluster=mainnet-beta`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-xs font-mono mt-2 truncate block hover:underline"

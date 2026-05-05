@@ -68,7 +68,6 @@ function PasscodeModal({ course, onSubmit, onClose }: {
         onSubmit={handleSubmit}
       >
         <div className="text-center">
-          <div className="text-4xl mb-2">🔒</div>
           <h3 className="font-black text-lg" style={{ color: 'var(--text)' }}>{course.name}</h3>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{t('student.passcodeRequired')}</p>
         </div>
@@ -153,6 +152,7 @@ export default function StudentPage() {
   const completedCount = completedTaskIds.size;
   useEffect(() => {
     if (completedCount === 0 || courses.length === 0) return;
+    let mounted = true;
     const earned = new Set<string>();
     Promise.all(courses.map(course =>
       api.getCourseTasks(course.id).then(courseTasks => {
@@ -160,7 +160,9 @@ export default function StudentPage() {
           earned.add(course.id);
         }
       }).catch(() => {})
-    )).then(() => setCompletedCourseIds(new Set(earned)));
+    )).then(() => { if (mounted) setCompletedCourseIds(new Set(earned)); });
+    return () => { mounted = false; };
+  // completedTaskIds identity is stable from the Set reference; using completedCount as proxy
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completedCount, courses]);
 
@@ -313,7 +315,7 @@ export default function StudentPage() {
                               {course.name}
                             </p>
                             {course.hasPasscode && (
-                              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🔒</span>
+                              <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ background: 'rgba(255,192,145,0.12)', color: '#ffc091' }}>私密</span>
                             )}
                             {done && <span className="badge text-[10px] px-2 py-0.5">✓ Done</span>}
                           </div>
@@ -344,7 +346,7 @@ export default function StudentPage() {
 
             <div className="card mb-5 p-5">
               <div className="flex items-start gap-4">
-                <CourseThumb imageUrl={selectedCourse.imageUrl} symbol={selectedCourse.symbol} size={16} />
+                <CourseThumb imageUrl={selectedCourse.imageUrl} symbol={selectedCourse.symbol} size={56} />
                 <div className="flex-1 min-w-0">
                   <h2 className="font-black text-xl leading-tight mb-1" style={{ color: 'var(--text)' }}>
                     {selectedCourse.name}
@@ -354,7 +356,7 @@ export default function StudentPage() {
                   </p>
                   {selectedCourse.launchSignature && (
                     <a
-                      href={`https://explorer.solana.com/tx/${selectedCourse.launchSignature}?cluster=devnet`}
+                      href={`https://explorer.solana.com/tx/${selectedCourse.launchSignature}?cluster=mainnet-beta`}
                       target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs font-semibold mt-2"
                       style={{ color: 'var(--brand-green)' }}

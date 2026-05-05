@@ -23,8 +23,11 @@ export const api = {
   getCourses: (q?: string) =>
     req<Course[]>(`/courses${q ? `?q=${encodeURIComponent(q)}` : ''}`),
   getCourse: (id: string) => req<Course>(`/courses/${id}`),
-  getCourseTasks: (id: string, passcode?: string) =>
-    req<Task[]>(`/courses/${id}/tasks${passcode ? `?passcode=${encodeURIComponent(passcode)}` : ''}`),
+  getCourseTasks: (id: string, passcode?: string) => {
+    const headers = new Headers();
+    if (passcode) headers.set('x-passcode', passcode);
+    return req<Task[]>(`/courses/${id}/tasks`, passcode ? { headers } : undefined);
+  },
   getCourseStats: (id: string) => req<CourseStats>(`/courses/${id}/stats`),
   deleteTask: async (courseId: string, taskId: string, auth: WalletAuth) => {
     const path = `/courses/${courseId}/tasks/${taskId}`;

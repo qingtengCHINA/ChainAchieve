@@ -7,11 +7,28 @@ import bs58 from 'bs58';
 import { Buffer } from 'node:buffer';
 import { z } from 'zod';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet, x-message, x-signature',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-};
+const ALLOWED_ORIGINS = new Set([
+  'https://www.chainachieve.top',
+  'https://chainachieve.top',
+  'http://localhost:5173',
+  'http://localhost:3000',
+]);
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') ?? '';
+  const allowed = ALLOWED_ORIGINS.has(origin) ? origin
+    : origin.match(/\.vercel\.app$/) ? origin   // allow Vercel preview deployments
+    : 'https://www.chainachieve.top';
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet, x-message, x-signature, x-passcode',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  };
+}
+
+// Per-request CORS headers — updated at the top of each serve() invocation.
+// Safe in Deno's single-threaded isolate model.
+let corsHeaders: Record<string, string> = getCorsHeaders(new Request('http://localhost'));
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
@@ -76,6 +93,7 @@ const ProfileSchema = z.object({
 });
 
 Deno.serve(async (req: Request) => {
+  corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -146,8 +164,9 @@ async function listTasks(req: Request, route: string): Promise<Response> {
   if (!course) return json({ error: 'Course not found' }, 404);
 
   if (course.passcode) {
-    const submitted = new URL(req.url).searchParams.get('passcode') ?? '';
-    if (submitted.toUpperCase() !== course.passcode.toUpperCase()) {
+    // Accept passcode via x-passcode header (preferred) or legacy query param
+    const submitted = (req.headers.get('x-passcode') ?? new URL(req.url).searchParams.get('passcode') ?? '').toUpperCase();
+    if (submitted !== course.passcode.toUpperCase()) {
       return json({ error: 'Invalid passcode' }, 403);
     }
   }
@@ -179,10 +198,24 @@ async function listTeacherCourses(req: Request): Promise<Response> {
     .order('created_at', { ascending: false });
   if (error) return dbError(error);
 
-  const rows = await Promise.all((data ?? []).map(async (course) => ({
+  const courseIds = (data ?? []).map((c) => c.id);
+  const { data: statsRows, error: statsError } = await supabase.rpc('get_course_stats_batch', { course_ids: courseIds });
+  if (statsError) return dbError(statsError);
+
+  const statsMap = new Map<string, { totalTasks: number; studentCount: number; totalCompletions: number; earnedStudents: number }>();
+  for (const s of statsRows ?? []) {
+    statsMap.set(s.course_id, {
+      totalTasks: Number(s.total_tasks),
+      studentCount: Number(s.student_count),
+      totalCompletions: Number(s.total_completions),
+      earnedStudents: Number(s.earned_students),
+    });
+  }
+
+  const rows = (data ?? []).map((course) => ({
     ...courseToApi(course),
-    stats: await getCourseStats(course.id),
-  })));
+    stats: statsMap.get(course.id) ?? { totalTasks: 0, studentCount: 0, totalCompletions: 0, earnedStudents: 0 },
+  }));
   return json(rows);
 }
 
@@ -356,12 +389,8 @@ async function createTokenInfo(req: Request, route: string): Promise<Response> {
 
   const normalizedPasscode = passcode ? passcode.toUpperCase() : null;
 
-  let step = 'metadata';
   try {
-    const keypair = getPlatformKeypair();
-    const conn = getConnection();
-
-    // Step 1: Create token metadata on Bags API
+    // Step 1: Register token metadata with Bags API (no on-chain operations yet)
     const result = await getSDK().tokenLaunch.createTokenInfoAndMetadata({
       name, symbol, description, imageUrl: sdkImageUrl,
       ...(telegram && { telegram }),
@@ -369,30 +398,7 @@ async function createTokenInfo(req: Request, route: string): Promise<Response> {
       ...(website && { website }),
     });
 
-    const tokenMint = new PublicKey(result.tokenMint);
-    const teacherPubkey = new PublicKey(teacherWallet);
-
-    // Step 2: Get or create fee share config (handles "already exists" gracefully)
-    step = 'fee_config';
-    const configKey = await getOrCreateFeeConfig(tokenMint, teacherPubkey, keypair, conn);
-
-    // Step 3: Launch token on-chain
-    step = 'launch';
-    const launchTx = await getSDK().tokenLaunch.createLaunchTransaction({
-      metadataUrl: result.tokenMetadata,
-      tokenMint,
-      launchWallet: keypair.publicKey,
-      initialBuyLamports: 0,
-      configKey,
-    });
-    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
-    launchTx.message.recentBlockhash = blockhash;
-    launchTx.sign([keypair]);
-    const launchSig = await conn.sendRawTransaction(launchTx.serialize());
-    await conn.confirmTransaction({ signature: launchSig, blockhash, lastValidBlockHeight });
-
-    // Step 4: Persist course with full launch info
-    step = 'db';
+    // Step 2: Save course to DB — token launch happens separately via launchToken
     const courseId = crypto.randomUUID();
     const { error } = await supabase.from('courses').insert({
       id: courseId,
@@ -402,16 +408,16 @@ async function createTokenInfo(req: Request, route: string): Promise<Response> {
       mint_address: result.tokenMint,
       metadata_url: result.tokenMetadata,
       passcode: normalizedPasscode,
-      config_key: configKey.toBase58(),
-      launch_signature: launchSig,
+      config_key: null,
+      launch_signature: null,
       created_at: new Date().toISOString(),
     });
     if (error) return dbError(error);
-    return json({ courseId, tokenMint: result.tokenMint, metadataUrl: result.tokenMetadata, launchSignature: launchSig });
+    return json({ courseId, tokenMint: result.tokenMint, metadataUrl: result.tokenMetadata });
   } catch (err) {
     const detail = bagsSdkError(err);
-    console.error(`[createTokenInfo step=${step}]`, detail);
-    return json({ error: `[${step}] ${detail}` }, 500);
+    console.error('[createTokenInfo]', detail);
+    return json({ error: detail }, 500);
   }
 }
 
@@ -433,7 +439,7 @@ async function launchToken(req: Request, route: string): Promise<Response> {
     const tokenMint = new PublicKey(course.mint_address);
     const teacherPubkey = new PublicKey(course.teacher_wallet);
 
-    // Resolve configKey: use stored one, or get/create
+    // Resolve configKey: use stored one or call Bags API to create/get it
     const configKey = course.config_key
       ? new PublicKey(course.config_key)
       : await getOrCreateFeeConfig(tokenMint, teacherPubkey, keypair, conn);
@@ -451,6 +457,8 @@ async function launchToken(req: Request, route: string): Promise<Response> {
     tx.sign([keypair]);
     const signature = await conn.sendRawTransaction(tx.serialize());
     await conn.confirmTransaction({ signature, blockhash, lastValidBlockHeight });
+
+    step = 'db';
     await supabase
       .from('courses')
       .update({ config_key: configKey.toBase58(), launch_signature: signature })
@@ -493,37 +501,14 @@ async function claimTransactions(req: Request): Promise<Response> {
 async function leaderboard(req: Request): Promise<Response> {
   const rawLimit = Number(new URL(req.url).searchParams.get('limit') ?? 20);
   const limit = Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 100) : 20;
-  const { data, error } = await supabase
-    .from('completions')
-    .select('student_wallet, completed_at, tasks(course_id)')
-    .eq('status', 'completed');
+  const { data, error } = await supabase.rpc('get_leaderboard', { lim: limit });
   if (error) return dbError(error);
-
-  const grouped = new Map<string, { studentWallet: string; completionCount: number; courseIds: Set<string>; latestAt: number }>();
-  for (const row of data ?? []) {
-    const task = Array.isArray(row.tasks) ? row.tasks[0] : row.tasks;
-    const latestAt = new Date(row.completed_at).getTime();
-    const entry = grouped.get(row.student_wallet) ?? {
-      studentWallet: row.student_wallet,
-      completionCount: 0,
-      courseIds: new Set<string>(),
-      latestAt,
-    };
-    entry.completionCount += 1;
-    if (task?.course_id) entry.courseIds.add(task.course_id);
-    entry.latestAt = Math.max(entry.latestAt, latestAt);
-    grouped.set(row.student_wallet, entry);
-  }
-
-  return json([...grouped.values()]
-    .sort((a, b) => b.completionCount - a.completionCount || a.latestAt - b.latestAt)
-    .slice(0, limit)
-    .map(({ studentWallet, completionCount, courseIds, latestAt }) => ({
-      studentWallet,
-      completionCount,
-      courseCount: courseIds.size,
-      latestAt,
-    })));
+  return json((data ?? []).map((row: { student_wallet: string; completion_count: number; course_count: number; latest_at: string }) => ({
+    studentWallet: row.student_wallet,
+    completionCount: Number(row.completion_count),
+    courseCount: Number(row.course_count),
+    latestAt: new Date(row.latest_at).getTime(),
+  })));
 }
 
 async function studentCompletions(req: Request): Promise<Response> {
@@ -724,20 +709,28 @@ async function getOrCreateFeeConfig(
   keypair: Keypair,
   conn: Connection,
 ): Promise<PublicKey> {
-  const normalizedParams = {
+  const body = {
     basisPointsArray: [10000],
     payer: keypair.publicKey.toBase58(),
     baseMint: tokenMint.toBase58(),
     claimersArray: [teacherPubkey.toBase58()],
   };
+  console.log('[fee-share/config] baseMint:', tokenMint.toBase58(), 'payer:', keypair.publicKey.toBase58().slice(0, 8));
 
-  // Bypass the SDK's "Config already exists" throw — call API directly
-  const response = await (getSDK().bagsApiClient as { post: (p: string, d: unknown) => Promise<Record<string, unknown>> }).post('/fee-share/config', normalizedParams);
-  const configKey = new PublicKey(response.meteoraConfigKey as string);
+  // Use SDK's bagsApiClient: proper error extraction from Bags API error bodies,
+  // and bypasses ConfigService's 'Config already exists' throw on needsCreation:false.
+  const data = await getSDK().bagsApiClient.post('/fee-share/config', body) as {
+    meteoraConfigKey: string;
+    needsCreation: boolean;
+    transactions?: Array<{ transaction: string }>;
+  };
 
-  if (!response.needsCreation) return configKey;  // already on-chain
+  const configKey = new PublicKey(data.meteoraConfigKey);
+  console.log('[fee-share/config] needsCreation:', data.needsCreation, 'key:', data.meteoraConfigKey.slice(0, 8));
 
-  const transactions: VersionedTransaction[] = ((response.transactions ?? []) as Array<{ transaction: string }>).map(
+  if (!data.needsCreation) return configKey;
+
+  const transactions: VersionedTransaction[] = (data.transactions ?? []).map(
     (t) => VersionedTransaction.deserialize(bs58.decode(t.transaction))
   );
 
@@ -829,6 +822,6 @@ function json(body: unknown, status = 200): Response {
 }
 
 function dbError(error: { message: string; code?: string }): Response {
-  console.error('[db]', error);
-  return json({ error: error.message }, 500);
+  console.error('[db]', error.code, error.message);
+  return json({ error: 'Database error' }, 500);
 }

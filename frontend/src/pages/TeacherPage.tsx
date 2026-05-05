@@ -94,11 +94,8 @@ function LaunchModal({ course, onClose, onSuccess }: {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🚀</span>
-            <h3 className="font-black text-lg" style={{ color: 'var(--text)' }}>{t('teacher.launchToken')}</h3>
-          </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }} className="text-xl leading-none">×</button>
+          <h3 className="font-black text-lg" style={{ color: 'var(--text)' }}>{t('teacher.launchToken')}</h3>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', lineHeight: 1, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }} className="hover:opacity-70 transition-opacity text-xl">×</button>
         </div>
         <div className="rounded-2xl p-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
           <p className="font-bold text-sm mb-1" style={{ color: 'var(--text)' }}>{course.name}</p>
@@ -137,6 +134,7 @@ function EditModal({ course, wallet, signMessage, onClose, onSuccess }: {
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     name: course.name,
     description: course.description,
@@ -150,7 +148,7 @@ function EditModal({ course, wallet, signMessage, onClose, onSuccess }: {
   async function handleSave() {
     if (!signMessage) return;
     if (form.passcode && !/^[A-Za-z0-9]{8}$/.test(form.passcode)) {
-      setError('口令必须为恰好 8 位字母/数字。');
+      setError(t('teacher.editModal.passcodeError'));
       return;
     }
     setLoading(true); setError(null);
@@ -203,35 +201,32 @@ function EditModal({ course, wallet, signMessage, onClose, onSuccess }: {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">✏️</span>
-            <h3 className="font-black text-lg" style={{ color: 'var(--text)' }}>编辑课程</h3>
-          </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }} className="text-xl leading-none">×</button>
+          <h3 className="font-black text-lg" style={{ color: 'var(--text)' }}>{t('teacher.editModal.title')}</h3>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', lineHeight: 1, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }} className="hover:opacity-70 transition-opacity text-xl">×</button>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>课程名称</label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>{t('teacher.editModal.courseName')}</label>
             <input style={inputStyle} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} maxLength={32} />
           </div>
           <div>
-            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>课程描述</label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>{t('teacher.editModal.courseDesc')}</label>
             <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} maxLength={200} rows={3} />
           </div>
           <div>
-            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>封面图片 / Emoji</label>
-            <input style={inputStyle} value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://… 或 emoji 🎓" />
+            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>{t('teacher.editModal.coverImage')}</label>
+            <input style={inputStyle} value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://… 🎓" />
           </div>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
-              修改口令 {course.hasPasscode && <span style={{ color: 'var(--brand-green)' }}>(当前已设置)</span>}
+              {t('teacher.editModal.changePasscode')} {course.hasPasscode && <span style={{ color: 'var(--brand-green)' }}>{t('teacher.editModal.passcodeSet')}</span>}
             </label>
             <input
               style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '0.1em' }}
               value={form.passcode}
               onChange={e => setForm(f => ({ ...f, passcode: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8), clearPasscode: false }))}
-              placeholder="8 位字母/数字，留空则不变"
+              placeholder={t('teacher.editModal.passcodePh')}
               maxLength={8}
             />
             {course.hasPasscode && (
@@ -241,7 +236,7 @@ function EditModal({ course, wallet, signMessage, onClose, onSuccess }: {
                   checked={form.clearPasscode}
                   onChange={e => setForm(f => ({ ...f, clearPasscode: e.target.checked, passcode: '' }))}
                 />
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>清除口令（改为公开课程）</span>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('teacher.editModal.clearPasscode')}</span>
               </label>
             )}
           </div>
@@ -254,14 +249,14 @@ function EditModal({ course, wallet, signMessage, onClose, onSuccess }: {
         )}
 
         <div className="flex gap-2">
-          <motion.button className="btn-secondary flex-1 py-3" onClick={onClose} whileTap={{ scale: 0.97 }}>取消</motion.button>
+          <motion.button className="btn-secondary flex-1 py-3" onClick={onClose} whileTap={{ scale: 0.97 }}>{t('common.cancel')}</motion.button>
           <motion.button
             className="btn-primary flex-1 py-3 justify-center"
             onClick={handleSave}
             disabled={loading}
             whileTap={{ scale: loading ? 1 : 0.97 }}
           >
-            {loading ? '保存中…' : '保存修改'}
+            {loading ? t('teacher.editModal.saving') : t('teacher.editModal.save')}
           </motion.button>
         </div>
       </motion.div>
@@ -276,6 +271,7 @@ function DeleteModal({ course, wallet, signMessage, onClose, onSuccess }: {
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -310,11 +306,10 @@ function DeleteModal({ course, wallet, signMessage, onClose, onSuccess }: {
         onClick={e => e.stopPropagation()}
       >
         <div className="text-center">
-          <div className="text-4xl mb-3">🗑️</div>
-          <h3 className="font-black text-lg mb-2" style={{ color: 'var(--text)' }}>删除课程</h3>
+          <h3 className="font-black text-lg mb-2" style={{ color: 'var(--text)' }}>{t('teacher.deleteModal.title')}</h3>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            确定要删除 <span className="font-bold" style={{ color: 'var(--text)' }}>「{course.name}」</span> 吗？
-            此操作将同时删除所有任务和完成记录，<span style={{ color: '#d03238' }}>无法撤销</span>。
+            {t('teacher.deleteModal.body', { name: course.name })}
+            {' '}<span style={{ color: '#d03238' }}>{t('teacher.deleteModal.cannotUndo')}</span>
           </p>
         </div>
         {error && (
@@ -323,7 +318,7 @@ function DeleteModal({ course, wallet, signMessage, onClose, onSuccess }: {
           </div>
         )}
         <div className="flex gap-2">
-          <motion.button className="btn-secondary flex-1 py-3" onClick={onClose} whileTap={{ scale: 0.97 }}>取消</motion.button>
+          <motion.button className="btn-secondary flex-1 py-3" onClick={onClose} whileTap={{ scale: 0.97 }}>{t('common.cancel')}</motion.button>
           <motion.button
             className="flex-1 py-3 font-bold rounded-2xl justify-center"
             style={{ background: 'rgba(208,50,56,0.15)', color: '#d03238', border: '1.5px solid rgba(208,50,56,0.3)' }}
@@ -331,7 +326,7 @@ function DeleteModal({ course, wallet, signMessage, onClose, onSuccess }: {
             disabled={loading}
             whileTap={{ scale: loading ? 1 : 0.97 }}
           >
-            {loading ? '删除中…' : '确认删除'}
+            {loading ? t('teacher.deleteModal.deleting') : t('teacher.deleteModal.confirmDelete')}
           </motion.button>
         </div>
       </motion.div>
@@ -340,6 +335,7 @@ function DeleteModal({ course, wallet, signMessage, onClose, onSuccess }: {
 }
 
 function ShareModal({ course, onClose }: { course: TeacherCourse; onClose: () => void }) {
+  const { t } = useTranslation();
   const shareUrl = `${window.location.origin}/student?course=${course.id}`;
   const [copied, setCopied] = useState(false);
 
@@ -367,29 +363,26 @@ function ShareModal({ course, onClose }: { course: TeacherCourse; onClose: () =>
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🔗</span>
-            <h3 className="font-black text-lg" style={{ color: 'var(--text)' }}>分享课程</h3>
-          </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }} className="text-xl leading-none">×</button>
+          <h3 className="font-black text-lg" style={{ color: 'var(--text)' }}>{t('teacher.shareModal.title')}</h3>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', lineHeight: 1, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }} className="hover:opacity-70 transition-opacity text-xl">×</button>
         </div>
 
         <div className="card p-4 flex flex-col items-center gap-3">
           <div style={{ background: '#fff', borderRadius: 12, padding: 12, display: 'inline-flex' }}>
             <QRCodeSVG value={shareUrl} size={160} fgColor="#163300" bgColor="#ffffff" />
           </div>
-          <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>学生扫码直达课程</p>
+          <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>{t('teacher.shareModal.qrHint')}</p>
         </div>
 
         <div className="card p-3">
-          <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>分享链接</p>
+          <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>{t('teacher.shareModal.linkLabel')}</p>
           <p className="font-mono text-xs break-all mb-3" style={{ color: 'var(--text)' }}>{shareUrl}</p>
           <motion.button
             className="btn-primary w-full justify-center"
             onClick={copy}
             whileTap={{ scale: 0.97 }}
           >
-            {copied ? '✓ 已复制' : '复制链接'}
+            {copied ? t('teacher.shareModal.copied') : t('teacher.shareModal.copy')}
           </motion.button>
         </div>
       </motion.div>
@@ -407,13 +400,15 @@ export default function TeacherPage() {
   const [editingCourse, setEditingCourse] = useState<TeacherCourse | null>(null);
   const [deletingCourse, setDeletingCourse] = useState<TeacherCourse | null>(null);
   const [sharingCourse, setSharingCourse] = useState<TeacherCourse | null>(null);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
 
   function fetchCourses() {
     if (!publicKey) return;
     setLoadingCourses(true);
+    setCoursesError(null);
     api.getTeacherCourses(publicKey.toBase58())
       .then(data => setCourses(data as TeacherCourse[]))
-      .catch(() => {})
+      .catch(err => setCoursesError(String(err)))
       .finally(() => setLoadingCourses(false));
   }
 
@@ -525,7 +520,14 @@ export default function TeacherPage() {
               </div>
             )}
 
-            {!loadingCourses && courses.length === 0 && (
+            {coursesError && (
+              <div className="card p-4" style={{ background: 'rgba(208,50,56,0.08)', borderColor: 'rgba(208,50,56,0.3)' }}>
+                <p className="text-sm font-semibold" style={{ color: '#d03238' }}>{coursesError}</p>
+                <button className="text-xs mt-2 underline" style={{ color: 'var(--text-muted)' }} onClick={fetchCourses}>{t('teacher.retryBtn')}</button>
+              </div>
+            )}
+
+            {!loadingCourses && !coursesError && courses.length === 0 && (
               <div className="card text-center py-12">
                 <div className="text-4xl mb-3">🎓</div>
                 <p className="font-semibold" style={{ color: 'var(--text-muted)' }}>{t('teacher.noCourses')}</p>
@@ -544,13 +546,13 @@ export default function TeacherPage() {
                           {c.hasPasscode && (
                             <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
                               style={{ background: 'rgba(255,192,145,0.15)', color: '#ffc091' }}>
-                              🔒
+                              {t('teacher.privateLabel')}
                             </span>
                           )}
                         </div>
                         <p className="text-xs font-bold tracking-wider" style={{ color: 'var(--brand-green)' }}>{c.symbol}</p>
                         {c.launchSignature ? (
-                          <a href={`https://explorer.solana.com/tx/${c.launchSignature}?cluster=devnet`}
+                          <a href={`https://explorer.solana.com/tx/${c.launchSignature}?cluster=mainnet-beta`}
                             target="_blank" rel="noopener noreferrer"
                             className="text-xs font-semibold mt-1 inline-flex items-center gap-1"
                             style={{ color: 'var(--text-muted)' }}>
@@ -572,28 +574,25 @@ export default function TeacherPage() {
                         <motion.button
                           onClick={() => setSharingCourse(c)}
                           className="btn-secondary"
-                          style={{ padding: '6px 10px', fontSize: 12 }}
+                          style={{ padding: '5px 10px', fontSize: 11, fontWeight: 700 }}
                           whileTap={{ scale: 0.93 }}
-                          title="分享"
                         >
-                          🔗
+                          {t('teacher.shareBtn')}
                         </motion.button>
                         <motion.button
                           onClick={() => setEditingCourse(c)}
                           className="btn-secondary"
-                          style={{ padding: '6px 10px', fontSize: 12 }}
+                          style={{ padding: '5px 10px', fontSize: 11, fontWeight: 700 }}
                           whileTap={{ scale: 0.93 }}
-                          title="编辑"
                         >
-                          ✏️
+                          {t('teacher.editBtn')}
                         </motion.button>
                         <motion.button
                           onClick={() => setDeletingCourse(c)}
-                          style={{ padding: '6px 10px', fontSize: 12, background: 'rgba(208,50,56,0.1)', color: '#d03238', border: '1.5px solid rgba(208,50,56,0.25)', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}
+                          style={{ padding: '5px 10px', fontSize: 11, fontWeight: 700, background: 'rgba(208,50,56,0.1)', color: '#d03238', border: '1.5px solid rgba(208,50,56,0.25)', borderRadius: 10, cursor: 'pointer' }}
                           whileTap={{ scale: 0.93 }}
-                          title="删除"
                         >
-                          🗑
+                          {t('teacher.deleteBtn')}
                         </motion.button>
                       </div>
                     </div>

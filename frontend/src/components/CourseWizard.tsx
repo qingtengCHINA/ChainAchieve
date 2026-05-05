@@ -77,7 +77,14 @@ export function CourseWizard({ teacherWallet, signMessage, onComplete }: Props) 
     if (!courseId) return;
     setLoading(true); setError(null);
     try {
-      for (const task of tasks) {
+      // Auto-include the current draft task if it has a title but wasn't explicitly added
+      const pending = newTask.title.trim() ? [...tasks, newTask] : tasks;
+      if (pending.length === 0) {
+        setError(t('wizard.noTaskError'));
+        setLoading(false);
+        return;
+      }
+      for (const task of pending) {
         await api.addTask(courseId, task, { wallet: teacherWallet, signMessage });
       }
       setStep(3);
@@ -98,13 +105,13 @@ export function CourseWizard({ teacherWallet, signMessage, onComplete }: Props) 
         className="card p-8 text-center"
         style={{ background: 'rgba(159,232,112,0.08)', borderColor: 'rgba(159,232,112,0.3)' }}
       >
-        <div className="text-5xl mb-4">🚀</div>
+        <div className="text-5xl mb-4">🎓</div>
         <h3 className="font-black text-2xl mb-2" style={{ color: 'var(--text)' }}>{t('wizard.tokenCreated')}</h3>
         <p className="text-sm mb-5" style={{ color: 'var(--text-secondary)' }}>{t('wizard.launchHint')}</p>
         <div className="my-5 space-y-3 text-left">
           {/* Share link */}
           <div className="card p-4">
-            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>课程分享链接</p>
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>{t('wizard.shareLinkLabel')}</p>
             <div className="flex items-center gap-2">
               <p className="font-mono text-xs break-all flex-1" style={{ color: 'var(--text)' }}>{shareUrl}</p>
               <motion.button
@@ -113,17 +120,17 @@ export function CourseWizard({ teacherWallet, signMessage, onComplete }: Props) 
                 onClick={() => navigator.clipboard.writeText(shareUrl)}
                 whileTap={{ scale: 0.93 }}
               >
-                复制
+                {t('wizard.copy')}
               </motion.button>
             </div>
           </div>
           {/* QR code */}
           <div className="card p-4 flex flex-col items-center gap-3">
-            <p className="text-xs font-semibold self-start" style={{ color: 'var(--text-muted)' }}>课程二维码</p>
+            <p className="text-xs font-semibold self-start" style={{ color: 'var(--text-muted)' }}>{t('wizard.qrCodeLabel')}</p>
             <div style={{ background: '#fff', borderRadius: 12, padding: 12, display: 'inline-flex' }}>
               <QRCodeSVG value={shareUrl} size={140} fgColor="#163300" bgColor="#ffffff" />
             </div>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>学生扫码即可直达课程</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('wizard.qrHint')}</p>
           </div>
           {/* Mint address */}
           <div className="card p-4">
@@ -132,7 +139,7 @@ export function CourseWizard({ teacherWallet, signMessage, onComplete }: Props) 
           </div>
           {launchSignature && (
             <a
-              href={`https://explorer.solana.com/tx/${launchSignature}?cluster=devnet`}
+              href={`https://explorer.solana.com/tx/${launchSignature}?cluster=mainnet-beta`}
               target="_blank" rel="noopener noreferrer"
               className="card p-4 flex items-center justify-between hover:opacity-80 transition-opacity"
               style={{ borderColor: 'rgba(159,232,112,0.4)' }}
@@ -377,9 +384,9 @@ export function CourseWizard({ teacherWallet, signMessage, onComplete }: Props) 
                 type="button"
                 className="btn-primary flex-1 py-3 justify-center"
                 onClick={handleStep2Submit}
-                disabled={loading || tasks.length === 0}
-                whileHover={{ scale: loading || tasks.length === 0 ? 1 : 1.03 }}
-                whileTap={{ scale: loading || tasks.length === 0 ? 1 : 0.97 }}
+                disabled={loading}
+                whileHover={{ scale: loading ? 1 : 1.03 }}
+                whileTap={{ scale: loading ? 1 : 0.97 }}
               >
                 {loading ? t('wizard.saving') : t('wizard.continue')}
               </motion.button>
